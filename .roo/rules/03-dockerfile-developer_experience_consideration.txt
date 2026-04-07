@@ -1,0 +1,6 @@
+Consider following when dev setup is requested:
+1. Easy/simple setup (e.g. via Makefile)
+2. Iterate without needing to rebuild container image (bind mount code into container or use hot reloading utilities)
+3. Include profiling and debugging tooling (setup a special docker-debug compose file in order to use those utilities)
+4. Execute tests within container (setup a special docker-testing compose file that will be used for such purposes)
+

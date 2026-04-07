@@ -1,0 +1,19 @@
+FROM python:3.14.3-alpine3.23
+
+# Install curl for health checks and development tools
+RUN apk --no-cache add curl
+
+WORKDIR /app
+
+# Copy and install dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# Install development dependencies for hot reloading
+RUN pip install watchfiles
+
+# In dev mode, code is mounted via bind mount
+# This allows for hot reloading without rebuilding
+
+# Use uvicorn with reload for hot reloading
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

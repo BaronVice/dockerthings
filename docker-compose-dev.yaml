@@ -1,0 +1,88 @@
+services:
+  nginx:
+    image: nginx:1.29.7-alpine
+    container_name: nginx-server-dev
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      # Bind mount for live HTML updates
+      - type: bind
+        source: ./html
+        target: /usr/share/nginx/html
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+    networks:
+      - nginx-network
+    depends_on:
+      app1:
+        condition: service_healthy
+        restart: true
+      app2:
+        condition: service_healthy
+        restart: true
+
+  app1:
+    build:
+      context: ./tobalance
+      dockerfile: dockerfiles/Dockerfile.dev
+    container_name: app1-dev
+    restart: unless-stopped
+    networks:
+      - nginx-network
+    # Bind mount source code for hot reloading
+    volumes:
+      - type: bind
+        source: ./tobalance
+        target: /app
+    secrets:
+      - source: app1-secret
+        target: /api_key.txt
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 5s
+      retries: 5
+      start_period: 15s
+      timeout: 5s
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  app2:
+    build:
+      context: ./tobalance
+      dockerfile: dockerfiles/Dockerfile.dev
+    container_name: app2-dev
+    restart: unless-stopped
+    networks:
+      - nginx-network
+    # Bind mount source code for hot reloading
+    volumes:
+      - type: bind
+        source: ./tobalance
+        target: /app
+    secrets:
+      - source: app2-secret
+        target: /api_key.txt
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 5s
+      retries: 5
+      start_period: 15s
+      timeout: 5s
+    environment:
+      - PYTHONUNBUFFERED=1
+
+networks:
+  nginx-network:
+    driver: bridge
+
+secrets:
+  app1-secret: 
+    file: ./tobalance/apikeys/api_key1.txt
+  app2-secret:
+    file: ./tobalance/apikeys/api_key2.txt

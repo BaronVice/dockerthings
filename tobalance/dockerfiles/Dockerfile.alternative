@@ -1,0 +1,100 @@
+# Dockerfile.alternative - Enhanced version following all Dockerfile principles
+# This alternative demonstrates additional best practices compared to the base Dockerfile
+
+# Base Image Selection Criteria:
+# 1. python:3.14.3-alpine3.23 (Current choice)
+#    - Size: ~50MB
+#    - CVEs: Low (alpine has minimal attack surface)
+#    - Description: Minimal Alpine-based Python image with musl libc
+#    - Best for: Production, size-critical deployments
+#
+# Alternative options considered:
+# 2. python:3.14.3-slim-bookworm
+#    - Size: ~120MB
+#    - CVEs: Medium (more packages = larger attack surface)
+#    - Description: Debian-based slim image with glibc
+#    - Best for: Better compatibility with binary wheels
+#
+# 3. cgr.dev/chainguard/python:latest-dev
+#    - Size: ~80MB
+#    - CVEs: Minimal (security-hardened distroless)
+#    - Description: Chainguard's hardened Python image
+#    - Best for: Maximum security requirements
+
+# Multi-stage build for optimal size and security
+FROM python:3.14.3-alpine3.23 AS builder
+
+# Set working directory early (Rule 4.1)
+WORKDIR /app
+
+# Install build dependencies with pinned versions (Rule 1.2)
+# Combined in single RUN to reduce layers (Rule 3.5)
+RUN apk --no-cache add \
+    curl=8.17.0-r1 \
+    gcc=15.2.0-r2 \
+    musl-dev=1.2.5-r21 \
+    linux-headers=6.16.12-r0
+
+# Copy only dependency file first (Rule 3.2)
+COPY --link requirements.txt .
+
+# Install dependencies with cache mount for faster rebuilds (Rule 3.3)
+# Use --no-cache-dir to avoid storing pip cache in layer (Rule 5)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir --upgrade pip==26.0 && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Final stage - minimal runtime image
+FROM python:3.14.3-alpine3.23
+
+# Set explicit environment variables (Rule 4.3)
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install only runtime dependencies with pinned versions (Rule 1.2, 7)
+RUN apk --no-cache add \
+    curl=8.17.0-r1 \
+    libgcc=15.2.0-r2
+
+# Create non-root user for security (Rule 6)
+RUN addgroup -g 1000 appuser && \
+    adduser -D -u 1000 -G appuser appuser
+
+# Set working directory (Rule 4.1)
+WORKDIR /app
+
+# Copy installed packages from builder stage
+COPY --from=builder --chown=appuser:appuser /usr/local/lib/python3.14/site-packages /usr/local/lib/python3.14/site-packages
+COPY --from=builder --chown=appuser:appuser /usr/local/bin /usr/local/bin
+
+# Copy application code with proper ownership (Rule 5.2)
+# Note: --link flag removed as it's incompatible with --chown (creates independent layer without user context)
+COPY --chown=appuser:appuser main.py .
+
+# Switch to non-root user (Rule 6)
+USER appuser
+
+# Indicate standard port (Rule 4.2) 
+EXPOSE 8000
+
+# Health check for container orchestration
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/ || exit 1
+
+# Use exec form for proper signal handling
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Build instructions:
+# Standard build:
+#   docker build -f Dockerfile.alternative -t tobalance:alternative .
+#
+# Multi-architecture build (Rule 10):
+#   docker buildx build --platform linux/amd64,linux/arm64 \
+#     -f Dockerfile.alternative -t tobalance:alternative .
+#
+# Build with secrets (Rule 8.1) - if needed for private repos:
+#   docker build -f Dockerfile.alternative \
+#     --secret id=pip_token,src=.pip_token \
+#     -t tobalance:alternative .

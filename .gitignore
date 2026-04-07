@@ -1,0 +1,132 @@
+# ──────────────────────────────────────────────
+# Git
+# ──────────────────────────────────────────────
+.git/
+
+# ──────────────────────────────────────────────
+# Python
+# ──────────────────────────────────────────────
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Type checkers / linters
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pytype/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# Virtual environments
+.env
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Translations
+*.mo
+*.pot
+
+# Django / Flask / Sphinx (not used here, but common)
+*.log
+docs/_build/
+target/
+
+# ──────────────────────────────────────────────
+# Secrets & credentials
+# ──────────────────────────────────────────────
+# API keys — keep only *.origin template files
+tobalance/apikeys/api_key*.txt
+tobalance-test/apikeys/api_key*.txt
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+.env.local
+.env.*.local
+
+# ──────────────────────────────────────────────
+# Docker
+# ──────────────────────────────────────────────
+# No Docker artefacts to ignore at repo level;
+# .dockerignore files live inside service dirs.
+
+# ──────────────────────────────────────────────
+# Editors & IDEs
+# ──────────────────────────────────────────────
+# VS Code
+.vscode/
+
+# PyCharm / IntelliJ
+.idea/
+
+# Vim
+*.swp
+*.swo
+.ropeproject/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ──────────────────────────────────────────────
+# Roo / AI tooling
+# ──────────────────────────────────────────────
+# .roo/

@@ -1,0 +1,36 @@
+services:
+  test-app1:
+    build:
+      context: .
+      dockerfile: tobalance-test/dockerfiles/Dockerfile.test
+    container_name: test-app1
+    networks:
+      - test-network
+    secrets:
+      - source: app1-secret
+        target: /api_key.txt
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  test-app2:
+    build:
+      context: .
+      dockerfile: tobalance-test/dockerfiles/Dockerfile.test
+    container_name: test-app2
+    networks:
+      - test-network
+    secrets:
+      - source: app2-secret
+        target: /api_key.txt
+    environment:
+      - PYTHONUNBUFFERED=1
+
+networks:
+  test-network:
+    driver: bridge
+
+secrets:
+  app1-secret: 
+    file: ./tobalance-test/apikeys/api_key1.txt
+  app2-secret:
+    file: ./tobalance-test/apikeys/api_key2.txt

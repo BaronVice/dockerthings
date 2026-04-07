@@ -1,0 +1,12 @@
+Choosing a Base Image rule - consider following criteria:
+1. Size
+2. Language support (libc)
+3. Ergonomics (package managers, utilities)
+4. Security (number of CVEs, attack surface area)
+
+Before picking base image introduce a choice of most fitting images based on criteria above.
+Each choice describes image by:
+1. Image name
+2. Image size
+3. CVEs (number of critical, high, medium, low)
+4. Short description of image
